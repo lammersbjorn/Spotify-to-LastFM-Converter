@@ -8,12 +8,11 @@ def main():
     start_time = time.perf_counter()
     all_rows = []
 
-    # This will find all files whose names start with "Streaming_History" and end with .json.
+    # Process all JSON files starting with "Streaming_History"
     for filename in glob.glob("Streaming_History*.json"):
         print(f"Processing file: {filename}")
         with open(filename, "r", encoding="utf8") as f:
             try:
-                # Each file is assumed to contain a JSON array of records.
                 data = json.load(f)
             except json.JSONDecodeError as e:
                 print(f"Error loading JSON from {filename}: {e}")
@@ -26,22 +25,19 @@ def main():
             except (ValueError, TypeError):
                 ms_played = 0
 
-            # Only include records with at least 30,000 ms played.
+            # Only include records with at least 30000ms played.
             if ms_played >= 30000:
-                # Extract the timestamp, artist name, and track name.
-                ts = record.get("ts", "").strip()
-                artist = record.get("master_metadata_album_artist_name", "").strip()
-                track = record.get("master_metadata_track_name", "").strip()
+                # Use (record.get(KEY) or "") to ensure a default empty string for None values.
+                ts = (record.get("ts") or "").strip()
+                artist = (record.get("master_metadata_album_artist_name") or "").strip()
+                track = (record.get("master_metadata_track_name") or "").strip()
 
-                # Append a row with the desired fields.
                 all_rows.append([ts, artist, track])
 
-    # Create a DataFrame from the collected records.
-    # You can change the list of column names or remove the header in the CSV output as needed.
+    # Create a DataFrame from the collected rows.
     df = pd.DataFrame(all_rows, columns=["Timestamp", "Artist", "Track"])
 
-    # Write the combined data to output.csv.
-    # Set header=False if you do not want a header row in your CSV.
+    # Write to CSV; set header=False if you prefer no header row.
     df.to_csv('output.csv', index=False, header=False)
 
     elapsed_time = time.perf_counter() - start_time
