@@ -1,53 +1,51 @@
-import linecache
-import re
+import glob
+import json
 import time
-import pandas
-
+import pandas as pd
 
 def main():
     print("Starting convert\n")
     start_time = time.perf_counter()
-    file = 'StreamingHistory0.json'  # Choose your input file here
+    all_rows = []
 
-    num_lines = sum(1 for line in open(file, encoding="utf8"))
+    # This will find all files whose names start with "Streaming_History" and end with .json.
+    for filename in glob.glob("Streaming_History*.json"):
+        print(f"Processing file: {filename}")
+        with open(filename, "r", encoding="utf8") as f:
+            try:
+                # Each file is assumed to contain a JSON array of records.
+                data = json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"Error loading JSON from {filename}: {e}")
+                continue
 
-    lines = []
-    for i in range(1, num_lines):  # convert json into lines
-        line = linecache.getline(file, i)
-        line = line.strip()
-        lines.append(line)
+        # Process each record in the JSON data.
+        for record in data:
+            try:
+                ms_played = int(record.get("ms_played", 0))
+            except (ValueError, TypeError):
+                ms_played = 0
 
-    i = 3
-    all_songs = []
-    while i < num_lines:
-        indiv_song_clean = []
-        indiv_song = lines[i:i+3]
+            # Only include records with at least 30,000 ms played.
+            if ms_played >= 30000:
+                # Extract the timestamp, artist name, and track name.
+                ts = record.get("ts", "").strip()
+                artist = record.get("master_metadata_album_artist_name", "").strip()
+                track = record.get("master_metadata_track_name", "").strip()
 
-        for j in indiv_song:
-            strng = match(j)
-            indiv_song_clean.append(strng)
+                # Append a row with the desired fields.
+                all_rows.append([ts, artist, track])
 
-        if indiv_song_clean[2] >= 30000:  # Filter out songs that were listened to for less than 30 seconds.
-            song_merged = indiv_song_clean[0] + ", " + indiv_song_clean[1]
-            all_songs.append(song_merged)
-        i = i+6
+    # Create a DataFrame from the collected records.
+    # You can change the list of column names or remove the header in the CSV output as needed.
+    df = pd.DataFrame(all_rows, columns=["Timestamp", "Artist", "Track"])
 
-    print(all_songs)
+    # Write the combined data to output.csv.
+    # Set header=False if you do not want a header row in your CSV.
+    df.to_csv('output.csv', index=False, header=False)
 
-    output_file = pandas.DataFrame(all_songs)  # For some reason I couldn't get this to work without pandas
-    output_file.to_csv('output.csv', index=False, header=False)  # Make sure that the output file exist and is empty!
+    elapsed_time = time.perf_counter() - start_time
+    print(f"\nConvert finished in {elapsed_time:.2f} seconds.")
 
-    print("\nConvert finished in " + str(time.perf_counter() - start_time), "seconds.")
-
-
-def match(strng):  # extract relevant info
-    match_info = re.search(r":(.*)", strng).group()
-    match_info = match_info[2:]
-    if match_info[0] == "\"":  # artist or song title
-        match_info = match_info[:-1]
-    else:  # song duration
-        match_info = int(match_info)
-    return match_info
-
-
-main()
+if __name__ == '__main__':
+    main()
