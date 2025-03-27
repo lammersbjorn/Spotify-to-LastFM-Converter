@@ -1,11 +1,24 @@
+import argparse
+import csv
 import glob
 import json
 import time
-import pandas as pd
-import csv
 from datetime import datetime
+import pandas as pd
+
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Convert Spotify streaming history JSON to CSV for Last.fm import."
+    )
+    parser.add_argument(
+        "--threshold",
+        type=int,
+        default=30000,
+        help="Minimum play time in milliseconds to consider a song (default: 30000).",
+    )
+    args = parser.parse_args()
+
     print("Starting convert")
     start_time = time.perf_counter()
     all_rows = []
@@ -27,8 +40,8 @@ def main():
             except (ValueError, TypeError):
                 ms_played = 0
 
-            # Skip records with less than 30 seconds played
-            if ms_played < 30000:
+            # Skip records with less than the specified threshold
+            if ms_played < args.threshold:
                 continue
 
             # Extract mandatory fields
@@ -70,12 +83,15 @@ def main():
             all_rows.append([artist, track, album, timestamp, album_artist, duration])
 
     # Create a DataFrame from the collected rows.
-    df = pd.DataFrame(all_rows, columns=["artist", "track", "album", "timestamp", "album_artist", "duration"])
+    df = pd.DataFrame(
+        all_rows, columns=["artist", "track", "album", "timestamp", "album_artist", "duration"]
+    )
     # Write to CSV with all fields quoted and no header row.
     df.to_csv("output.csv", index=False, header=False, quoting=csv.QUOTE_ALL)
 
     elapsed = time.perf_counter() - start_time
     print(f"Convert finished in {elapsed:.2f} seconds")
+
 
 if __name__ == "__main__":
     main()
