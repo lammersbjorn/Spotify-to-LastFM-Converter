@@ -17,6 +17,12 @@ def main():
         default=30000,
         help="Minimum play time in milliseconds to consider a song (default: 30000).",
     )
+    parser.add_argument(
+        "--max_scrobbles",
+        type=int,
+        default=0,
+        help="Maximum number of scrobbles (rows) per CSV file. If 0, no splitting occurs (default: 0).",
+    )
     args = parser.parse_args()
 
     print("Starting convert")
@@ -82,12 +88,27 @@ def main():
             # "{artist}", "{track}", "{album}", "{timestamp}", "{album artist}", "{duration}"
             all_rows.append([artist, track, album, timestamp, album_artist, duration])
 
-    # Create a DataFrame from the collected rows.
-    df = pd.DataFrame(
-        all_rows, columns=["artist", "track", "album", "timestamp", "album_artist", "duration"]
-    )
-    # Write to CSV with all fields quoted and no header row.
-    df.to_csv("output.csv", index=False, header=False, quoting=csv.QUOTE_ALL)
+    if args.max_scrobbles > 0:
+        # Split into multiple CSV files
+        num_files = (len(all_rows) + args.max_scrobbles - 1) // args.max_scrobbles
+        for i in range(num_files):
+            start_index = i * args.max_scrobbles
+            end_index = min((i + 1) * args.max_scrobbles, len(all_rows))
+            df = pd.DataFrame(
+                all_rows[start_index:end_index],
+                columns=["artist", "track", "album", "timestamp", "album_artist", "duration"],
+            )
+            filename = f"output_{i + 1}.csv"
+            df.to_csv(filename, index=False, header=False, quoting=csv.QUOTE_ALL)
+            print(f"Wrote {filename} with {len(df)} rows.")
+    else:
+        # Create a DataFrame from the collected rows.
+        df = pd.DataFrame(
+            all_rows, columns=["artist", "track", "album", "timestamp", "album_artist", "duration"]
+        )
+        # Write to CSV with all fields quoted and no header row.
+        df.to_csv("output.csv", index=False, header=False, quoting=csv.QUOTE_ALL)
+        print(f"Wrote output.csv with {len(df)} rows.")
 
     elapsed = time.perf_counter() - start_time
     print(f"Convert finished in {elapsed:.2f} seconds")
