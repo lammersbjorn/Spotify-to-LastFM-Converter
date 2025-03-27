@@ -1,24 +1,54 @@
-# Spotify-to-LastFM-Converter
-Let's you import your Spotify history .json-file into Universal Scrobbler to add it to your last.fm-profile
+# Spotify to LastFM
 
-As a new Last.fm user it bothered me that I couldn't simply import my Spotify history. Here is how you can do it:
+Converts your Spotify streaming history JSON files into a CSV format suitable for importing into Universal Scrobbler, allowing you to add it to your Last.fm profile.
 
-1. Request your personal Spotify data in the data rights and privacy settings. I don't know if this is available worldwide (at least it is in Germany)
+## Prerequisites
 
-2. Once received, put the .json-files in the same directory as this program.
+1.  **Spotify Data Request:** Request your personal Spotify data in the data rights and privacy settings. Instructions can be found here: [https://www.spotify.com/account/privacy/](https://www.spotify.com/account/privacy/) (availability may vary by region).
 
-3. In the python code select your input file and make sure that output.csv is there and empty.
+2.  **Python 3.6+:** Ensure you have Python 3.6 or a later version installed.
 
-4. Simply run the application. Now the output.csv file should contain the song title and artist. Only songs that were played at least 30 seconds are considered (changeable in the code).
+## Installation
 
-5. Most of the time you will have several .json files. So rename the output file and create a new empty output.csv. Select the other .json file and repeat.
+1.  **Clone the repository (or download the script):**  Download the `converter.py` script and place it in a directory of your choice.
 
-6. Now you can head over to https://universalscrobbler.com 
+2.  **Install Dependencies:**  Navigate to the directory containing the script in your terminal and run:
 
-7. Choose "Scrobble manually in bulk". You'll need to connect your last.fm profile and buy a premium subscription for universal scrobbler (which costs $1 per Month). 1 Month should be sufficient.
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-8. Copy paste the songs from your .csv files into the bulk scrobbler. The daily limit is 2800 scrobbles. Now the songs should appear in last.fm. Of course, you don't have the time information (last.fm only supports scrobbles from the past 2 weeks anyways), but at least you have a part of your music history! :)
+## Usage
 
-9. (optional): The imported songs aren't attributed to their respective albums. To solve this you can upgrade to a Last.fm pro subscription and follow the steps described here: https://github.com/RudeySH/lastfm-bulk-edit
+1.  **Place JSON Files:** Put all the `Streaming_History*.json` files from your Spotify data export in the same directory as the `converter.py` script.
 
+2.  **Run the Conversion:**  Open a terminal, navigate to the script's directory, and run the script.  You can customize the minimum playback time using the `--threshold` argument:
+
+    ```bash
+    python converter.py --threshold 30000
+    ```
+
+    *   `--threshold`:  Specifies the minimum play time in milliseconds for a song to be included in the output. The default value is 30000 (30 seconds).
+
+3.  **Output File:**  The script will generate a file named `output.csv` in the same directory. This file contains your Spotify history in a format suitable for Universal Scrobbler.
+
+4.  **Process Multiple Files:** The script automatically processes all files matching the pattern `Streaming_History*.json` in the directory.  No need to rename or move files individually.
+
+## Importing into Last.fm via Universal Scrobbler
+
+1.  **Universal Scrobbler:** Go to [https://universalscrobbler.com](https://universalscrobbler.com/).
+
+2.  **Manual Scrobbling:** Choose "Scrobble manually in bulk".
+
+3.  **Connect Last.fm:** Connect your Last.fm profile.
+
+4.  **Premium Subscription:** You'll need a premium subscription for Universal Scrobbler (approximately \$1 per month). One month should be sufficient for a one-time import.
+
+5.  **Copy and Paste:** Copy the contents of the `output.csv` file into the bulk scrobbler.
+
+6.  **Scrobble:** Submit the scrobbles. Be aware of the daily limit (approximately 2800 scrobbles).
+
+## Optional: Album Attribution
+
+The imported songs won't automatically be attributed to their respective albums. To solve this, you can upgrade to a Last.fm Pro subscription and follow the steps described here: [https://github.com/RudeySH/lastfm-bulk-edit](https://github.com/RudeySH/lastfm-bulk-edit)
 
