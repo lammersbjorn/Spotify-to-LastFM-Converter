@@ -25,12 +25,14 @@ Converts your Spotify streaming history JSON files into a CSV format suitable fo
 2.  **Run the Conversion:**  Open a terminal, navigate to the script's directory, and run the script.  You can customize the minimum playback time using the `--threshold` argument:
 
     ```bash
-    python converter.py --threshold 30000
+    python converter.py --threshold 30000 --max_scrobbles 2800
     ```
 
     *   `--threshold`:  Specifies the minimum play time in milliseconds for a song to be included in the output. The default value is 30000 (30 seconds).
 
-3.  **Output File:**  The script will generate a file named `output.csv` in the same directory. This file contains your Spotify history in a format suitable for Universal Scrobbler.
+    *   `--max_scrobbles`: Specifies the maximum number of scrobbles (rows) per CSV file. If set to a value greater than 0, the output will be split into multiple CSV files, each with at most `max_scrobbles` rows.  Useful for complying with daily scrobble limits. If 0, no splitting occurs.
+
+3.  **Output File:**  The script will generate a file named `output.csv` (or multiple files named `output_1.csv`, `output_2.csv`, etc. if `--max_scrobbles` is specified) in the same directory. This file(s) contains your Spotify history in a format suitable for Universal Scrobbler.
 
 4.  **Process Multiple Files:** The script automatically processes all files matching the pattern `Streaming_History*.json` in the directory.  No need to rename or move files individually.
 
@@ -44,11 +46,10 @@ Converts your Spotify streaming history JSON files into a CSV format suitable fo
 
 4.  **Premium Subscription:** You'll need a premium subscription for Universal Scrobbler (approximately \$1 per month). One month should be sufficient for a one-time import.
 
-5.  **Copy and Paste:** Copy the contents of the `output.csv` file into the bulk scrobbler.
+5.  **Copy and Paste:** Copy the contents of the `output.csv` file(s) into the bulk scrobbler. If you generated multiple files, import them one at a time.
 
 6.  **Scrobble:** Submit the scrobbles. Be aware of the daily limit (approximately 2800 scrobbles).
 
 ## Optional: Album Attribution
 
 The imported songs won't automatically be attributed to their respective albums. To solve this, you can upgrade to a Last.fm Pro subscription and follow the steps described here: [https://github.com/RudeySH/lastfm-bulk-edit](https://github.com/RudeySH/lastfm-bulk-edit)
-
